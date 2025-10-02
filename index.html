@@ -39,10 +39,17 @@
       const { useState, useEffect, useMemo } = React;
 
       const LS_KEY = "citadel_state_v1";
-      const loadState = () => { try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
-      const saveState = (s) => { try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {} };
-      const nowTs = () => Date.now();
-      const uid = (p="id") => `${p}_${Math.random().toString(36).slice(2,9)}`;
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+      }
+      function saveState(s) {
+        try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {}
+      }
+      function nowTs() { return Date.now(); }
+      function uid(p) { return (p || "id") + "_" + Math.random().toString(36).slice(2,9); }
 
       const seedState = {
         posts: [
@@ -79,7 +86,7 @@
         <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">{text}</span>
       );
       const Card = ({ children, className = "" }) => (
-        <div className={`rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm ${className}`}>{children}</div>
+        <div className={"rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm " + className}>{children}</div>
       );
 
       const Modal = ({ open, onClose, title, children }) => {
@@ -98,9 +105,9 @@
       };
 
       const Drawer = ({ open, onClose, title, children }) => (
-        <div className={`fixed inset-0 z-40 ${open ? "" : "pointer-events-none"}`}>
-          <div className={`absolute inset-0 bg-black/40 transition-opacity ${open ? "opacity-100" : "opacity-0"}`} onClick={onClose}></div>
-          <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transition-transform ${open ? "translate-x-0" : "translate-x-full"}`}>
+        <div className={"fixed inset-0 z-40 " + (open ? "" : "pointer-events-none")}>
+          <div className={"absolute inset-0 bg-black/40 transition-opacity " + (open ? "opacity-100" : "opacity-0")} onClick={onClose}></div>
+          <div className={"absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transition-transform " + (open ? "translate-x-0" : "translate-x-full")}>
             <div className="p-4 border-b flex items-center justify-between">
               <p className="text-sm font-semibold">{title}</p>
               <button className="text-slate-500 text-sm" onClick={onClose}>Close</button>
@@ -111,98 +118,166 @@
       );
 
       function App() {
-        const [state, setState] = useState(() => loadState() ?? seedState);
-        useEffect(() => saveState(state), [state]);
+        const [state, setState] = useState(function(){ return loadState() || seedState; });
+        useEffect(function(){ saveState(state); }, [state]);
 
         const [showWorkModal, setShowWorkModal] = useState(false);
         const [showPostModal, setShowPostModal] = useState(false);
         const [openChatId, setOpenChatId] = useState(null);
 
-        const projectOfTheDay = useMemo(() => ({
+        const projectOfTheDay = useMemo(function(){ return {
           title: "Onboarding Funnel Revamp", owner: "Sofia R.", status: "Open to feedback",
-        }), []);
-        const hallFeed = useMemo(() => ([
-          { id: "f1", title: "RAG Chat for Docs", status: "Seeking collaborator" },
-          { id: "f2", title: "Pricing Experiments Tracker", status: "Open to critique" },
-          { id: "f3", title: "Founders CRM Cleanup", status: "Seeking collaborator" },
-          { id: "f4", title: "Growth Review Template", status: "Share your version" },
-        ]), []);
+        }; }, []);
 
         // Posts
-        const toggleExpanded = (id) => setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, expanded: !p.expanded } : p) }));
-        const toggleLike = (id) => setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) } : p) }));
-        const loadMoreComments = (id, count=5) => setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, showCount: Math.min((p.showCount ?? 0) + count, p.comments.length) } : p) }));
-        const addComment = (id, text) => {
-          if (!text.trim()) return;
-          const newC = { id: uid("c"), author: "You", text: text.trim(), ts: nowTs() };
-          setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, comments: [...p.comments, newC], showCount: Math.min((p.showCount ?? 2) + 1, p.comments.length + 1) } : p) }));
-        };
+        function toggleExpanded(id) {
+          setState(function(s){
+            return { ...s, posts: s.posts.map(function(p){ return p.id === id ? { ...p, expanded: !p.expanded } : p; }) };
+          });
+        }
+        function toggleLike(id) {
+          setState(function(s){
+            return { ...s, posts: s.posts.map(function(p){
+              if (p.id !== id) return p;
+              var liked = !p.liked;
+              return { ...p, liked: liked, likes: p.likes + (liked ? 1 : -1) };
+            })};
+          });
+        }
+        function loadMoreComments(id, count) {
+          count = typeof count === "number" ? count : 5;
+          setState(function(s){
+            return { ...s, posts: s.posts.map(function(p){
+              if (p.id !== id) return p;
+              var current = (p.showCount || 0) + count;
+              var max = (p.comments && p.comments.length) ? p.comments.length : 0;
+              return { ...p, showCount: current > max ? max : current };
+            })};
+          });
+        }
+        function addComment(id, text) {
+          if (!text || !text.trim()) return;
+          var newC = { id: uid("c"), author: "You", text: text.trim(), ts: nowTs() };
+          setState(function(s){
+            return { ...s, posts: s.posts.map(function(p){
+              if (p.id !== id) return p;
+              var comments = (p.comments || []).slice();
+              comments.push(newC);
+              var showCount = p.showCount || 0;
+              if (showCount < 2) showCount = 2;
+              if (showCount + 1 > comments.length) showCount = comments.length;
+              return { ...p, comments: comments, showCount: showCount };
+            })};
+          });
+        }
 
         // DMs
-        const approveDM = (reqId) => setState(s => {
-          const req = s.dmRequests.find(r => r.id === reqId); if (!req) return s;
-          const newChat = {
-            id: uid("dm"), title: `Chat with ${req.from}`, last: "Say hi and share context.", unread: 1,
-            msgs: [{ id: uid("m"), from: req.from, text: "Hi! Would love to jam on your post.", ts: nowTs() - 10000 }],
-          };
-          return { ...s, dmRequests: s.dmRequests.filter(r => r.id !== reqId), chats: [newChat, ...s.chats] };
-        });
-        const ignoreDM = (reqId) => setState(s => ({ ...s, dmRequests: s.dmRequests.filter(r => r.id !== reqId) }));
-        const openChat = (chatId) => { setState(s => ({ ...s, chats: s.chats.map(c => c.id === chatId ? { ...c, unread: 0 } : c) })); setOpenChatId(chatId); };
-        const sendMessage = (chatId, text) => {
-          if (!text.trim()) return;
-          setState(s => ({ ...s, chats: s.chats.map(c => {
-            if (c.id !== chatId) return c;
-            const msg = { id: uid("m"), from: "You", text: text.trim(), ts: nowTs() };
-            return { ...c, msgs: [...c.msgs, msg], last: text.trim(), unread: 0 };
-          }) }));
-        };
+        function approveDM(reqId) {
+          setState(function(s){
+            var req = s.dmRequests.find(function(r){ return r.id === reqId; });
+            if (!req) return s;
+            var newChat = {
+              id: uid("dm"),
+              title: "Chat with " + req.from,
+              last: "Say hi and share context.",
+              unread: 1,
+              msgs: [{ id: uid("m"), from: req.from, text: "Hi! Would love to jam on your post.", ts: nowTs() - 10000 }],
+            };
+            return { ...s, dmRequests: s.dmRequests.filter(function(r){ return r.id !== reqId; }), chats: [newChat].concat(s.chats) };
+          });
+        }
+        function ignoreDM(reqId) {
+          setState(function(s){ return { ...s, dmRequests: s.dmRequests.filter(function(r){ return r.id !== reqId; }) }; });
+        }
+        function openChat(chatId) {
+          setState(function(s){
+            return { ...s, chats: s.chats.map(function(c){ return c.id === chatId ? { ...c, unread: 0 } : c; }) };
+          });
+          setOpenChatId(chatId);
+        }
+        function sendMessage(chatId, text) {
+          if (!text || !text.trim()) return;
+          setState(function(s){
+            return { ...s, chats: s.chats.map(function(c){
+              if (c.id !== chatId) return c;
+              var msg = { id: uid("m"), from: "You", text: text.trim(), ts: nowTs() };
+              return { ...c, msgs: c.msgs.concat(msg), last: text.trim(), unread: 0 };
+            })};
+          });
+        }
 
-        const ExpandedPost = ({ post }) => {
+        function ExpandedPost({ post }) {
           const [commentText, setCommentText] = useState("");
-          const visible = post.showCount ?? 0;
-          const hasMore = visible < (post.comments?.length ?? 0);
+          var visible = post.showCount || 0;
+          var total = (post.comments && post.comments.length) ? post.comments.length : 0;
+          var hasMore = visible < total;
+
           return (
             <Card>
-              {post.title && <p className="text-sm font-semibold">{post.title}</p>}
-              <p className="text-xs text-slate-500 mt-1">by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}</p>
+              {post.title ? <p className="text-sm font-semibold">{post.title}</p> : null}
+              <p className="text-xs text-slate-500 mt-1">
+                by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {total}
+              </p>
               <p className="mt-3 text-sm text-slate-800">{post.body}</p>
-              {post.comments.length > 0 && (
+
+              {total > 0 ? (
                 <div className="mt-4 border-l border-slate-200 pl-3 space-y-2">
-                  {post.comments.slice(0, visible).map(c => (
-                    <p key={c.id} className="text-xs text-slate-700"><span className="font-medium">{c.author}:</span> {c.text}</p>
-                  ))}
-                  {hasMore && <button className="text-xs underline" onClick={() => loadMoreComments(post.id)}>Load more comments</button>}
+                  {(post.comments || []).slice(0, visible).map(function(c){
+                    return (
+                      <p key={c.id} className="text-xs text-slate-700">
+                        <span className="font-medium">{c.author}:</span> {c.text}
+                      </p>
+                    );
+                  })}
+                  {hasMore ? (
+                    <button className="text-xs underline" onClick={function(){ loadMoreComments(post.id); }}>
+                      Load more comments
+                    </button>
+                  ) : null}
                 </div>
-              )}
+              ) : null}
+
               <div className="mt-3 flex gap-2">
-                <input className="flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="Add a comment…" value={commentText} onChange={e => setCommentText(e.target.value)} />
-                <button className="rounded-lg border px-3 py-2 text-xs" onClick={() => { addComment(post.id, commentText); setCommentText(""); }}>Post</button>
+                <input
+                  className="flex-1 rounded-lg border px-3 py-2 text-sm"
+                  placeholder="Add a comment…"
+                  value={commentText}
+                  onChange={function(e){ setCommentText(e.target.value); }}
+                />
+                <button className="rounded-lg border px-3 py-2 text-xs" onClick={function(){ addComment(post.id, commentText); setCommentText(""); }}>
+                  Post
+                </button>
               </div>
             </Card>
           );
-        };
+        }
 
-        const CompactPost = ({ post }) => (
-          <Card>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm">
-                  <span className="font-medium">{post.author}</span>{" "}
-                  <span className="text-slate-500 text-xs">• {post.timeLabel}</span>
-                </p>
-                <p className="mt-1 text-sm text-slate-800">{post.body}</p>
-                <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                  <button className="rounded-lg border px-2 py-1" onClick={() => toggleLike(post.id)}>{post.liked ? "Unlike" : "Like"} ({post.likes})</button>
-                  <button className="rounded-lg border px-2 py-1" onClick={() => toggleExpanded(post.id)}>{post.expanded ? "Collapse" : "Expand"}</button>
+        function CompactPost({ post }) {
+          return (
+            <Card>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm">
+                    <span className="font-medium">{post.author}</span>{" "}
+                    <span className="text-slate-500 text-xs">• {post.timeLabel}</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-800">{post.body}</p>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                    <button className="rounded-lg border px-2 py-1" onClick={function(){ toggleLike(post.id); }}>
+                      {post.liked ? "Unlike" : "Like"} ({post.likes})
+                    </button>
+                    <button className="rounded-lg border px-2 py-1" onClick={function(){ toggleExpanded(post.id); }}>
+                      {post.expanded ? "Collapse" : "Expand"}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        );
+            </Card>
+          );
+        }
 
-        const openChatObj = state.chats.find(c => c.id === openChatId);
-        const year = new Date().getFullYear();
+        var openChatObj = (state.chats || []).find(function(c){ return c.id === openChatId; });
+        var year = new Date().getFullYear();
 
         return (
           <div className="min-h-screen">
@@ -237,8 +312,8 @@
                     <Card><p className="text-sm font-semibold">Ask for feedback</p><p className="text-xs text-slate-600 mt-1">Docs, decks, landing pages—no project required.</p></Card>
                   </div>
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <button onClick={() => setShowWorkModal(true)} className="px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm">Create a Work</button>
-                    <button onClick={() => setShowPostModal(true)} className="px-5 py-3 rounded-2xl border text-sm">Share a Post</button>
+                    <button onClick={function(){ setShowWorkModal(true); }} className="px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm">Create a Work</button>
+                    <button onClick={function(){ setShowPostModal(true); }} className="px-5 py-3 rounded-2xl border text-sm">Share a Post</button>
                     <a href="#waitlist" className="px-5 py-3 rounded-2xl border text-sm">Join the Waitlist</a>
                   </div>
                   <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
@@ -263,9 +338,9 @@
                           { id: "f2", title: "Pricing Experiments Tracker", status: "Open to critique" },
                           { id: "f3", title: "Founders CRM Cleanup", status: "Seeking collaborator" },
                           { id: "f4", title: "Growth Review Template", status: "Share your version" },
-                        ].map(item => (
-                          <li key={item.id}><span className="font-medium">{item.title}</span> — {item.status}</li>
-                        ))}
+                        ].map(function(item){
+                          return <li key={item.id}><span className="font-medium">{item.title}</span> — {item.status}</li>;
+                        })}
                       </ul>
                     </div>
                     <div className="mt-3 rounded-xl border p-3">
@@ -305,37 +380,43 @@
               <div className="md:col-span-2">
                 <ExpandedPost post={state.posts[0]} />
                 <div className="mt-4 grid gap-4">
-                  {state.posts.slice(1).map(p => p.expanded ? <ExpandedPost key={p.id} post={p} /> : <CompactPost key={p.id} post={p} />)}
+                  {state.posts.slice(1).map(function(p){
+                    return p.expanded ? <ExpandedPost key={p.id} post={p} /> : <CompactPost key={p.id} post={p} />;
+                  })}
                 </div>
               </div>
               <div className="md:col-span-1 grid gap-4">
                 <Card>
                   <p className="text-sm font-semibold">Active Chats</p>
                   <div className="mt-3 grid gap-2 text-sm text-slate-700">
-                    {state.chats.map(c => (
-                      <button key={c.id} className="p-2 rounded-lg border text-left hover:bg-slate-50" onClick={() => openChat(c.id)}>
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{c.title}</p>
-                          {c.unread > 0 && <span className="text-[10px] rounded-full bg-slate-900 text-white px-2 py-0.5">{c.unread}</span>}
-                        </div>
-                        <p className="text-xs text-slate-500 truncate">{c.last}</p>
-                      </button>
-                    ))}
+                    {state.chats.map(function(c){
+                      return (
+                        <button key={c.id} className="p-2 rounded-lg border text-left hover:bg-slate-50" onClick={function(){ openChat(c.id); }}>
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium">{c.title}</p>
+                            {c.unread > 0 ? <span className="text-[10px] rounded-full bg-slate-900 text-white px-2 py-0.5">{c.unread}</span> : null}
+                          </div>
+                          <p className="text-xs text-slate-500 truncate">{c.last}</p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </Card>
                 <Card>
                   <p className="text-sm font-semibold">DM Requests</p>
                   <div className="mt-3 grid gap-2 text-sm text-slate-700">
-                    {state.dmRequests.length === 0 && <p className="text-xs text-slate-500">No pending requests.</p>}
-                    {state.dmRequests.map(r => (
-                      <div key={r.id} className="p-2 rounded-lg border flex items-center justify-between">
-                        <span className="truncate">{r.from}</span>
-                        <div className="flex gap-2">
-                          <button className="rounded-lg border px-2 py-1 text-xs" onClick={() => approveDM(r.id)}>Approve</button>
-                          <button className="rounded-lg border px-2 py-1 text-xs" onClick={() => ignoreDM(r.id)}>Ignore</button>
+                    {state.dmRequests.length === 0 ? <p className="text-xs text-slate-500">No pending requests.</p> : null}
+                    {state.dmRequests.map(function(r){
+                      return (
+                        <div key={r.id} className="p-2 rounded-lg border flex items-center justify-between">
+                          <span className="truncate">{r.from}</span>
+                          <div className="flex gap-2">
+                            <button className="rounded-lg border px-2 py-1 text-xs" onClick={function(){ approveDM(r.id); }}>Approve</button>
+                            <button className="rounded-lg border px-2 py-1 text-xs" onClick={function(){ ignoreDM(r.id); }}>Ignore</button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Card>
               </div>
@@ -353,16 +434,18 @@
                   <Card><p className="font-semibold">How is it spam-free?</p><p className="text-slate-600 mt-1">Mod-reviewed posts, DM requests, and clear community rules.</p></Card>
                 </div>
 
-                {/* Airtable embed (JSX attributes) */}
-                <iframe
-                  className="airtable-embed"
-                  src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
-                  frameBorder="0"
-                  width="100%"
-                  height="560"
-                  style={{ background: "transparent", border: "1px solid #ccc" }}
-                  title="Citadel Waitlist"
-                ></iframe>
+                <!-- Airtable embed rendered via JSX attributes below -->
+                <div className="rounded-2xl border bg-white/80 p-3">
+                  <iframe
+                    className="airtable-embed"
+                    src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
+                    frameBorder="0"
+                    width="100%"
+                    height="560"
+                    style={{ background: "transparent", border: "1px solid #ccc" }}
+                    title="Citadel Waitlist"
+                  ></iframe>
+                </div>
               </div>
             </section>
 
@@ -372,7 +455,7 @@
             </footer>
 
             {/* MODALS */}
-            <Modal open={showPostModal} onClose={() => setShowPostModal(false)} title="New Post">
+            <Modal open={showPostModal} onClose={function(){ setShowPostModal(false); }} title="New Post">
               <div className="grid gap-3">
                 <input className="w-full rounded-xl border px-3 py-2 text-sm" placeholder="Title (optional)" />
                 <textarea className="w-full rounded-xl border px-3 py-2 text-sm min-h-[120px]" placeholder="What are you building, thinking, or learning right now?"></textarea>
@@ -380,7 +463,7 @@
               </div>
             </Modal>
 
-            <Modal open={showWorkModal} onClose={() => setShowWorkModal(false)} title="New Work">
+            <Modal open={showWorkModal} onClose={function(){ setShowWorkModal(false); }} title="New Work">
               <div className="grid gap-3">
                 <input className="w-full rounded-xl border px-3 py-2 text-sm" placeholder="Title" />
                 <textarea className="w-full rounded-xl border px-3 py-2 text-sm min-h-[120px]" placeholder="Describe what you’re building (feedback, collaborator, showcase)"></textarea>
@@ -389,20 +472,22 @@
             </Modal>
 
             {/* CHAT DRAWER */}
-            <Drawer open={!!openChatObj} onClose={() => setOpenChatId(null)} title={openChatObj ? openChatObj.title : ""}>
-              {openChatObj && (
+            <Drawer open={!!openChatObj} onClose={function(){ setOpenChatId(null); }} title={openChatObj ? openChatObj.title : ""}>
+              {openChatObj ? (
                 <div className="flex flex-col h-[calc(100vh-120px)]">
                   <div className="flex-1 overflow-y-auto space-y-3">
-                    {openChatObj.msgs.map(m => (
-                      <div key={m.id} className={`max-w-[80%] rounded-xl border px-3 py-2 text-sm ${m.from === "You" ? "ml-auto bg-slate-50" : "bg-white"}`}>
-                        <p className="text-[11px] text-slate-500">{m.from}</p>
-                        <p className="text-slate-800">{m.text}</p>
-                      </div>
-                    ))}
+                    {openChatObj.msgs.map(function(m){
+                      return (
+                        <div key={m.id} className={"max-w-[80%] rounded-xl border px-3 py-2 text-sm " + (m.from === "You" ? "ml-auto bg-slate-50" : "bg-white")}>
+                          <p className="text-[11px] text-slate-500">{m.from}</p>
+                          <p className="text-slate-800">{m.text}</p>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <ChatInput onSend={(txt) => sendMessage(openChatObj.id, txt)} />
+                  <ChatInput onSend={function(txt){ sendMessage(openChatObj.id, txt); }} />
                 </div>
-              )}
+              ) : null}
             </Drawer>
           </div>
         );
@@ -412,8 +497,16 @@
         const [val, setVal] = useState("");
         return (
           <div className="mt-3 flex gap-2">
-            <input className="flex-1 rounded-xl border px-3 py-2 text-sm" placeholder="Write a message…" value={val} onChange={e => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { onSend(val); setVal(""); } }} />
-            <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => { onSend(val); setVal(""); }}>Send</button>
+            <input
+              className="flex-1 rounded-xl border px-3 py-2 text-sm"
+              placeholder="Write a message…"
+              value={val}
+              onChange={function(e){ setVal(e.target.value); }}
+              onKeyDown={function(e){ if (e.key === "Enter") { onSend(val); setVal(""); } }}
+            />
+            <button className="rounded-xl border px-3 py-2 text-sm" onClick={function(){ onSend(val); setVal(""); }}>
+              Send
+            </button>
           </div>
         );
       }
