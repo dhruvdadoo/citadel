@@ -5,29 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Citadel – Highest Signal Conversations</title>
-    <meta
-      name="description"
-      content="Citadel is the professional network built for the highest-signal conversations. Post what you’re building, thinking, or learning; Halls, Commons, The Herald, and invite-only Boards keep it high-signal."
-    />
+    <meta name="description" content="Citadel is the professional network built for the highest-signal conversations. Post what you’re building, thinking, or learning; Halls, Commons, The Herald, and invite-only Boards keep it high-signal." />
 
-    <!-- Simple inline favicon -->
+    <!-- Favicon -->
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22000000%22 /><text x=%2250%22 y=%2270%22 font-size=%2280%22 text-anchor=%22middle%22 fill=%22ffffff%22 font-family=%22Inter,Arial,sans-serif%22>C</text></svg>"
     />
 
-    <!-- Open Graph -->
+    <!-- Open Graph (add og.png later if you want previews) -->
     <meta property="og:title" content="Citadel – Highest Signal Conversations" />
-    <meta
-      property="og:description"
-      content="Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep the conversations high-signal. The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges."
-    />
+    <meta property="og:description" content="Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep the conversations high-signal. The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dhruvdadoo.github.io/citadel/" />
 
-    <!-- Tailwind CSS -->
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React 18 UMD + Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -39,7 +32,7 @@
   <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
 
-    <script type="text/babel">
+    <script type="text/babel" data-presets="react">
       const { useState, useMemo } = React;
 
       const projects = [
@@ -264,21 +257,54 @@
                   </div>
                 </div>
 
+                {/* JSX-correct iframe attributes */}
                 <iframe
-                  class="airtable-embed"
+                  className="airtable-embed"
                   src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
-                  frameborder="0"
+                  frameBorder="0"
                   width="100%"
                   height="560"
-                  style="background: transparent; border: 1px solid #ccc"
+                  style={{ background: "transparent", border: "1px solid #ccc" }}
                   title="Citadel Waitlist"
                 ></iframe>
               </div>
             </section>
 
             <footer className="py-8 text-center text-xs text-slate-500">
-              © <span id="year">{new Date().getFullYear()}</span> Citadel. All rights reserved.
+              © {new Date().getFullYear()} Citadel. All rights reserved.
             </footer>
+
+            {/* Modals */}
+            {showPostModal && (
+              <div className="fixed inset-0 z-30 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
+                <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">New Post</p>
+                    <button className="text-slate-500 text-sm" onClick={() => setShowPostModal(false)}>Close</button>
+                  </div>
+                  <div className="mt-4 grid gap-3">
+                    <textarea placeholder="What are you building, thinking, or learning right now?" className="w-full rounded-xl border px-3 py-2 text-sm min-h-[120px]" />
+                    <button className="rounded-2xl bg-slate-900 text-white px-4 py-2 text-sm">Post</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showWorkModal && (
+              <div className="fixed inset-0 z-30 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
+                <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">New Work</p>
+                    <button className="text-slate-500 text-sm" onClick={() => setShowWorkModal(false)}>Close</button>
+                  </div>
+                  <div className="mt-4 grid gap-3">
+                    <input placeholder="Title" className="w-full rounded-xl border px-3 py-2 text-sm" />
+                    <textarea placeholder="Describe what you’re building (feedback, collaborator, showcase)" className="w-full rounded-xl border px-3 py-2 text-sm min-h-[120px]" />
+                    <button className="rounded-2xl bg-slate-900 text-white px-4 py-2 text-sm">Post Work</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       }
