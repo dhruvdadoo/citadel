@@ -34,39 +34,16 @@
   <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
 
-    <!-- Pure JSX inside this block -->
+    <!-- JSX app -->
     <script type="text/babel" data-presets="react">
       const { useState, useEffect, useMemo } = React;
 
-      // --------- Types (informal, for reference) ----------
-      // Comment: { id, author, text, ts }
-      // Post: { id, title?, author, timeLabel, body, likes, liked, comments[], expanded, showCount }
-      // DMRequest: { id, from }
-      // ChatMsg: { id, from, text, ts }
-      // Chat: { id, title, last, unread, msgs[] }
-      // AppState: { posts, dmRequests, chats }
-
-      // --------- Persistence helpers ----------
       const LS_KEY = "citadel_state_v1";
+      const loadState = () => { try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
+      const saveState = (s) => { try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {} };
+      const nowTs = () => Date.now();
+      const uid = (p="id") => `${p}_${Math.random().toString(36).slice(2,9)}`;
 
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(LS_KEY);
-          if (!raw) return null;
-          return JSON.parse(raw);
-        } catch {
-          return null;
-        }
-      }
-      function saveState(state) {
-        try {
-          localStorage.setItem(LS_KEY, JSON.stringify(state));
-        } catch {}
-      }
-      function nowTs() { return Date.now(); }
-      function uid(prefix="id") { return `${prefix}_${Math.random().toString(36).slice(2,9)}`; }
-
-      // --------- Seed data ----------
       const seedState = {
         posts: [
           {
@@ -74,85 +51,38 @@
             title: "Positioning lessons that moved CVR",
             author: "Elena (PMM – Stripe)",
             timeLabel: "2h",
-            body:
-              "We simplified the hero statement and removed feature bullets above the fold. Pairing this with a focused social proof stripe lifted paid conversion by 9% WoW. Biggest surprise: reducing the number of plans on the pricing page improved free-to-paid by 3.4%.",
-            likes: 15,
-            liked: false,
+            body: "We simplified the hero statement and removed feature bullets above the fold. Pairing this with a focused social proof stripe lifted paid conversion by 9% WoW. Biggest surprise: reducing the number of plans on the pricing page improved free-to-paid by 3.4%.",
+            likes: 15, liked: false,
             comments: [
               { id: "c1", author: "Alex", text: "We saw similar lift when we cut jargon from the hero. Short verbs > claims.", ts: nowTs() - 3600000 },
               { id: "c2", author: "Priya", text: "How did you handle ‘starter’ vs ‘pro’ naming? Curious about churn impact.", ts: nowTs() - 3500000 },
               { id: "c3", author: "Sam", text: "Did you A/B the number of plans or ship directly?", ts: nowTs() - 3400000 },
             ],
-            expanded: true,
-            showCount: 2,
+            expanded: true, showCount: 2,
           },
-          {
-            id: "p2",
-            author: "Hiro (ML – OpenAI)",
-            timeLabel: "6h",
-            body: "RAG eval: quality tapers after ~8 contexts; cache warming helped latency without big quality loss.",
-            likes: 27,
-            liked: false,
-            comments: [],
-            expanded: false,
-            showCount: 0,
-          },
-          {
-            id: "p3",
-            author: "Maya (Founder – YC)",
-            timeLabel: "1d",
-            body: "Cutting a seed deck to 8 slides — what moves to appendix? Thinking team or roadmap.",
-            likes: 34,
-            liked: false,
-            comments: [],
-            expanded: false,
-            showCount: 0,
-          },
+          { id: "p2", author: "Hiro (ML – OpenAI)", timeLabel: "6h", body: "RAG eval: quality tapers after ~8 contexts; cache warming helped latency without big quality loss.", likes: 27, liked: false, comments: [], expanded: false, showCount: 0 },
+          { id: "p3", author: "Maya (Founder – YC)", timeLabel: "1d", body: "Cutting a seed deck to 8 slides — what moves to appendix? Thinking team or roadmap.", likes: 34, liked: false, comments: [], expanded: false, showCount: 0 },
         ],
-        dmRequests: [
-          { id: "rq1", from: "Alice (Founder)" },
-          { id: "rq2", from: "Ben (PM)" },
-        ],
+        dmRequests: [{ id: "rq1", from: "Alice (Founder)" }, { id: "rq2", from: "Ben (PM)" }],
         chats: [
-          {
-            id: "dm1",
-            title: "Scaling infra at Series B",
-            last: "We had to shard writes after a rough on-call week…",
-            unread: 1,
+          { id: "dm1", title: "Scaling infra at Series B", last: "We had to shard writes after a rough on-call week…", unread: 1,
             msgs: [
               { id: "m1", from: "Alex", text: "Anyone hit write hotspots on multi-tenant DBs?", ts: nowTs() - 7200000 },
               { id: "m2", from: "You", text: "We saw spikes ~2000 rps; sharded by tenant id.", ts: nowTs() - 7100000 },
-            ],
-          },
-          {
-            id: "dm2",
-            title: "Fundraising tactics AMA",
-            last: "Partner pushback was mostly about expansion proof…",
-            unread: 0,
-            msgs: [
-              { id: "m1", from: "Maya", text: "What data convinced partners at seed for you?", ts: nowTs() - 5400000 },
-            ],
-          },
+            ]},
+          { id: "dm2", title: "Fundraising tactics AMA", last: "Partner pushback was mostly about expansion proof…", unread: 0,
+            msgs: [{ id: "m1", from: "Maya", text: "What data convinced partners at seed for you?", ts: nowTs() - 5400000 }]},
         ],
       };
 
-      // --------- UI helpers ----------
-      function Badge({ text }) {
-        return (
-          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">
-            {text}
-          </span>
-        );
-      }
-      function Card({ children, className = "" }) {
-        return (
-          <div className={`rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm ${className}`}>
-            {children}
-          </div>
-        );
-      }
+      const Badge = ({ text }) => (
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">{text}</span>
+      );
+      const Card = ({ children, className = "" }) => (
+        <div className={`rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm ${className}`}>{children}</div>
+      );
 
-      function Modal({ open, onClose, title, children }) {
+      const Modal = ({ open, onClose, title, children }) => {
         if (!open) return null;
         return (
           <div className="fixed inset-0 z-30 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
@@ -165,24 +95,21 @@
             </div>
           </div>
         );
-      }
+      };
 
-      function Drawer({ open, onClose, title, children }) {
-        return (
-          <div className={`fixed inset-0 z-40 ${open ? "" : "pointer-events-none"}`}>
-            <div className={`absolute inset-0 bg-black/40 transition-opacity ${open ? "opacity-100" : "opacity-0"}`} onClick={onClose}></div>
-            <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transition-transform ${open ? "translate-x-0" : "translate-x-full"}`}>
-              <div className="p-4 border-b flex items-center justify-between">
-                <p className="text-sm font-semibold">{title}</p>
-                <button className="text-slate-500 text-sm" onClick={onClose}>Close</button>
-              </div>
-              <div className="p-4">{children}</div>
+      const Drawer = ({ open, onClose, title, children }) => (
+        <div className={`fixed inset-0 z-40 ${open ? "" : "pointer-events-none"}`}>
+          <div className={`absolute inset-0 bg-black/40 transition-opacity ${open ? "opacity-100" : "opacity-0"}`} onClick={onClose}></div>
+          <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transition-transform ${open ? "translate-x-0" : "translate-x-full"}`}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <p className="text-sm font-semibold">{title}</p>
+              <button className="text-slate-500 text-sm" onClick={onClose}>Close</button>
             </div>
+            <div className="p-4">{children}</div>
           </div>
-        );
-      }
+        </div>
+      );
 
-      // --------- App ----------
       function App() {
         const [state, setState] = useState(() => loadState() ?? seedState);
         useEffect(() => saveState(state), [state]);
@@ -191,13 +118,9 @@
         const [showPostModal, setShowPostModal] = useState(false);
         const [openChatId, setOpenChatId] = useState(null);
 
-        // Project of the Day (static selection for MVP)
         const projectOfTheDay = useMemo(() => ({
-          title: "Onboarding Funnel Revamp",
-          owner: "Sofia R.",
-          status: "Open to feedback",
+          title: "Onboarding Funnel Revamp", owner: "Sofia R.", status: "Open to feedback",
         }), []);
-
         const hallFeed = useMemo(() => ([
           { id: "f1", title: "RAG Chat for Docs", status: "Seeking collaborator" },
           { id: "f2", title: "Pricing Experiments Tracker", status: "Open to critique" },
@@ -205,155 +128,81 @@
           { id: "f4", title: "Growth Review Template", status: "Share your version" },
         ]), []);
 
-        // ---- Post handlers ----
-        function toggleExpanded(id) {
-          setState(s => ({
-            ...s,
-            posts: s.posts.map(p => p.id === id ? { ...p, expanded: !p.expanded } : p)
-          }));
-        }
-        function toggleLike(id) {
-          setState(s => ({
-            ...s,
-            posts: s.posts.map(p => {
-              if (p.id !== id) return p;
-              const liked = !p.liked;
-              return { ...p, liked, likes: p.likes + (liked ? 1 : -1) };
-            })
-          }));
-        }
-        function loadMoreComments(id, count=5) {
-          setState(s => ({
-            ...s,
-            posts: s.posts.map(p => p.id === id ? { ...p, showCount: Math.min((p.showCount ?? 0) + count, p.comments.length) } : p)
-          }));
-        }
-        function addComment(id, text) {
+        // Posts
+        const toggleExpanded = (id) => setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, expanded: !p.expanded } : p) }));
+        const toggleLike = (id) => setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) } : p) }));
+        const loadMoreComments = (id, count=5) => setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, showCount: Math.min((p.showCount ?? 0) + count, p.comments.length) } : p) }));
+        const addComment = (id, text) => {
           if (!text.trim()) return;
           const newC = { id: uid("c"), author: "You", text: text.trim(), ts: nowTs() };
-          setState(s => ({
-            ...s,
-            posts: s.posts.map(p => {
-              if (p.id !== id) return p;
-              const comments = [...p.comments, newC];
-              const showCount = Math.max(p.showCount ?? 0, 2);
-              return { ...p, comments, showCount: Math.min(showCount + 1, comments.length) };
-            })
-          }));
-        }
+          setState(s => ({ ...s, posts: s.posts.map(p => p.id === id ? { ...p, comments: [...p.comments, newC], showCount: Math.min((p.showCount ?? 2) + 1, p.comments.length + 1) } : p) }));
+        };
 
-        // ---- DM handlers ----
-        function approveDM(reqId) {
-          setState(s => {
-            const req = s.dmRequests.find(r => r.id === reqId);
-            if (!req) return s;
-            const newChat = {
-              id: uid("dm"),
-              title: `Chat with ${req.from}`,
-              last: "Say hi and share context.",
-              unread: 1,
-              msgs: [
-                { id: uid("m"), from: req.from, text: "Hi! Would love to jam on your post.", ts: nowTs() - 10000 },
-              ],
-            };
-            return {
-              ...s,
-              dmRequests: s.dmRequests.filter(r => r.id !== reqId),
-              chats: [newChat, ...s.chats],
-            };
-          });
-        }
-        function ignoreDM(reqId) {
-          setState(s => ({ ...s, dmRequests: s.dmRequests.filter(r => r.id !== reqId) }));
-        }
-        function openChat(chatId) {
-          // mark as read
-          setState(s => ({
-            ...s,
-            chats: s.chats.map(c => c.id === chatId ? { ...c, unread: 0 } : c)
-          }));
-          setOpenChatId(chatId);
-        }
-        function sendMessage(chatId, text) {
+        // DMs
+        const approveDM = (reqId) => setState(s => {
+          const req = s.dmRequests.find(r => r.id === reqId); if (!req) return s;
+          const newChat = {
+            id: uid("dm"), title: `Chat with ${req.from}`, last: "Say hi and share context.", unread: 1,
+            msgs: [{ id: uid("m"), from: req.from, text: "Hi! Would love to jam on your post.", ts: nowTs() - 10000 }],
+          };
+          return { ...s, dmRequests: s.dmRequests.filter(r => r.id !== reqId), chats: [newChat, ...s.chats] };
+        });
+        const ignoreDM = (reqId) => setState(s => ({ ...s, dmRequests: s.dmRequests.filter(r => r.id !== reqId) }));
+        const openChat = (chatId) => { setState(s => ({ ...s, chats: s.chats.map(c => c.id === chatId ? { ...c, unread: 0 } : c) })); setOpenChatId(chatId); };
+        const sendMessage = (chatId, text) => {
           if (!text.trim()) return;
-          setState(s => {
-            const chats = s.chats.map(c => {
-              if (c.id !== chatId) return c;
-              const msg = { id: uid("m"), from: "You", text: text.trim(), ts: nowTs() };
-              return { ...c, msgs: [...c.msgs, msg], last: text.trim(), unread: 0 };
-            });
-            return { ...s, chats };
-          });
-        }
+          setState(s => ({ ...s, chats: s.chats.map(c => {
+            if (c.id !== chatId) return c;
+            const msg = { id: uid("m"), from: "You", text: text.trim(), ts: nowTs() };
+            return { ...c, msgs: [...c.msgs, msg], last: text.trim(), unread: 0 };
+          }) }));
+        };
 
-        // ---- UI Components (inline) ----
-        function ExpandedPost({ post }) {
+        const ExpandedPost = ({ post }) => {
           const [commentText, setCommentText] = useState("");
           const visible = post.showCount ?? 0;
           const hasMore = visible < (post.comments?.length ?? 0);
           return (
             <Card>
               {post.title && <p className="text-sm font-semibold">{post.title}</p>}
-              <p className="text-xs text-slate-500 mt-1">
-                by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}
-              </p>
+              <p className="text-xs text-slate-500 mt-1">by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}</p>
               <p className="mt-3 text-sm text-slate-800">{post.body}</p>
-
-              {/* Comments */}
               {post.comments.length > 0 && (
                 <div className="mt-4 border-l border-slate-200 pl-3 space-y-2">
                   {post.comments.slice(0, visible).map(c => (
-                    <p key={c.id} className="text-xs text-slate-700">
-                      <span className="font-medium">{c.author}:</span> {c.text}
-                    </p>
+                    <p key={c.id} className="text-xs text-slate-700"><span className="font-medium">{c.author}:</span> {c.text}</p>
                   ))}
-                  {hasMore && (
-                    <button className="text-xs underline" onClick={() => loadMoreComments(post.id)}>Load more comments</button>
-                  )}
+                  {hasMore && <button className="text-xs underline" onClick={() => loadMoreComments(post.id)}>Load more comments</button>}
                 </div>
               )}
-
-              {/* Add comment */}
               <div className="mt-3 flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border px-3 py-2 text-sm"
-                  placeholder="Add a comment…"
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                />
-                <button className="rounded-lg border px-3 py-2 text-xs" onClick={() => { addComment(post.id, commentText); setCommentText(""); }}>
-                  Post
-                </button>
+                <input className="flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="Add a comment…" value={commentText} onChange={e => setCommentText(e.target.value)} />
+                <button className="rounded-lg border px-3 py-2 text-xs" onClick={() => { addComment(post.id, commentText); setCommentText(""); }}>Post</button>
               </div>
             </Card>
           );
-        }
+        };
 
-        function CompactPost({ post }) {
-          return (
-            <Card>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm">
-                    <span className="font-medium">{post.author}</span>{" "}
-                    <span className="text-slate-500 text-xs">• {post.timeLabel}</span>
-                  </p>
-                  <p className="mt-1 text-sm text-slate-800">{post.body}</p>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                    <button className="rounded-lg border px-2 py-1" onClick={() => toggleLike(post.id)}>
-                      {post.liked ? "Unlike" : "Like"} ({post.likes})
-                    </button>
-                    <button className="rounded-lg border px-2 py-1" onClick={() => toggleExpanded(post.id)}>
-                      {post.expanded ? "Collapse" : "Expand"}
-                    </button>
-                  </div>
+        const CompactPost = ({ post }) => (
+          <Card>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm">
+                  <span className="font-medium">{post.author}</span>{" "}
+                  <span className="text-slate-500 text-xs">• {post.timeLabel}</span>
+                </p>
+                <p className="mt-1 text-sm text-slate-800">{post.body}</p>
+                <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                  <button className="rounded-lg border px-2 py-1" onClick={() => toggleLike(post.id)}>{post.liked ? "Unlike" : "Like"} ({post.likes})</button>
+                  <button className="rounded-lg border px-2 py-1" onClick={() => toggleExpanded(post.id)}>{post.expanded ? "Collapse" : "Expand"}</button>
                 </div>
               </div>
-            </Card>
-          );
-        }
+            </div>
+          </Card>
+        );
 
-        const openChat = state.chats.find(c => c.id === openChatId);
+        const openChatObj = state.chats.find(c => c.id === openChatId);
+        const year = new Date().getFullYear();
 
         return (
           <div className="min-h-screen">
@@ -376,47 +225,25 @@
                 <div className="md:col-span-7">
                   <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
                     The professional network built for{" "}
-                    <span className="underline decoration-amber-300/60 decoration-2 underline-offset-4">
-                      the highest-signal conversations
-                    </span>
+                    <span className="underline decoration-amber-300/60 decoration-2 underline-offset-4">the highest-signal conversations</span>
                   </h1>
-
                   <p className="mt-4 text-slate-700 text-lg max-w-[58ch]">
                     Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep conversations high-signal.
                     The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges.
                   </p>
-
-                  {/* Quick actions ABOVE CTAs */}
                   <div className="mt-6 grid sm:grid-cols-3 gap-3">
-                    <Card>
-                      <p className="text-sm font-semibold">Post a question</p>
-                      <p className="text-xs text-slate-600 mt-1">Get practical answers from founders who’ve done it.</p>
-                    </Card>
-                    <Card>
-                      <p className="text-sm font-semibold">Share a learning</p>
-                      <p className="text-xs text-slate-600 mt-1">Reflections, experiments, what worked / didn’t.</p>
-                    </Card>
-                    <Card>
-                      <p className="text-sm font-semibold">Ask for feedback</p>
-                      <p className="text-xs text-slate-600 mt-1">Docs, decks, landing pages—no project required.</p>
-                    </Card>
+                    <Card><p className="text-sm font-semibold">Post a question</p><p className="text-xs text-slate-600 mt-1">Get practical answers from founders who’ve done it.</p></Card>
+                    <Card><p className="text-sm font-semibold">Share a learning</p><p className="text-xs text-slate-600 mt-1">Reflections, experiments, what worked / didn’t.</p></Card>
+                    <Card><p className="text-sm font-semibold">Ask for feedback</p><p className="text-xs text-slate-600 mt-1">Docs, decks, landing pages—no project required.</p></Card>
                   </div>
-
-                  {/* CTAs */}
                   <div className="mt-6 flex flex-wrap gap-3">
                     <button onClick={() => setShowWorkModal(true)} className="px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm">Create a Work</button>
                     <button onClick={() => setShowPostModal(true)} className="px-5 py-3 rounded-2xl border text-sm">Share a Post</button>
                     <a href="#waitlist" className="px-5 py-3 rounded-2xl border text-sm">Join the Waitlist</a>
                   </div>
-
-                  {/* Trust chips */}
                   <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
-                    <Badge text="Invite-only" />
-                    <Badge text="Spam-free" />
-                    <Badge text="100% Signal" />
+                    <Badge text="Invite-only" /><Badge text="Spam-free" /><Badge text="100% Signal" />
                   </div>
-
-                  {/* Social proof */}
                   <p className="mt-4 text-xs text-slate-500">
                     Operators from Stripe, Shopify, Notion, OpenAI read and respond here.
                     <a href="#waitlist" className="ml-2 underline">Join the waitlist →</a>
@@ -427,19 +254,20 @@
                 <div className="md:col-span-5 flex flex-col gap-5">
                   <Card>
                     <p className="text-sm font-semibold">Founders Hall</p>
-
-                    {/* FEED (no 'example' label) */}
                     <div className="mt-3 rounded-xl border p-3">
                       <p className="text-xs text-slate-500">Feed</p>
                       <ul className="mt-1 text-sm text-slate-800 space-y-1.5">
                         <li><span className="font-medium">Onboarding Funnel Revamp</span> — Open to feedback</li>
-                        {hallFeed.map(item => (
+                        {[
+                          { id: "f1", title: "RAG Chat for Docs", status: "Seeking collaborator" },
+                          { id: "f2", title: "Pricing Experiments Tracker", status: "Open to critique" },
+                          { id: "f3", title: "Founders CRM Cleanup", status: "Seeking collaborator" },
+                          { id: "f4", title: "Growth Review Template", status: "Share your version" },
+                        ].map(item => (
                           <li key={item.id}><span className="font-medium">{item.title}</span> — {item.status}</li>
                         ))}
                       </ul>
                     </div>
-
-                    {/* Commons */}
                     <div className="mt-3 rounded-xl border p-3">
                       <p className="text-xs text-slate-500">Commons</p>
                       <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
@@ -448,8 +276,6 @@
                         <div className="rounded-lg border p-2 text-center">AMA</div>
                       </div>
                     </div>
-
-                    {/* Board */}
                     <div className="mt-3 flex items-center justify-between rounded-xl border p-3 text-xs">
                       <div>
                         <p className="font-semibold">Founders Board</p>
@@ -459,7 +285,6 @@
                     </div>
                   </Card>
 
-                  {/* Project of the Day (soft accent) */}
                   <Card className="ring-1 ring-amber-200/60 bg-amber-50/50">
                     <p className="text-sm font-semibold">Project of the Day</p>
                     <div className="mt-2">
@@ -477,34 +302,18 @@
 
             {/* HERALD */}
             <section id="herald" className="mx-auto max-w-6xl px-4 pb-12 grid md:grid-cols-3 gap-6">
-              {/* Latest Posts (span 2) */}
               <div className="md:col-span-2">
-                {/* Expanded first post */}
                 <ExpandedPost post={state.posts[0]} />
-
-                {/* Other posts */}
                 <div className="mt-4 grid gap-4">
-                  {state.posts.slice(1).map(p =>
-                    p.expanded ? (
-                      <ExpandedPost key={p.id} post={p} />
-                    ) : (
-                      <CompactPost key={p.id} post={p} />
-                    )
-                  )}
+                  {state.posts.slice(1).map(p => p.expanded ? <ExpandedPost key={p.id} post={p} /> : <CompactPost key={p.id} post={p} />)}
                 </div>
               </div>
-
-              {/* Sidebar on right */}
               <div className="md:col-span-1 grid gap-4">
                 <Card>
                   <p className="text-sm font-semibold">Active Chats</p>
                   <div className="mt-3 grid gap-2 text-sm text-slate-700">
                     {state.chats.map(c => (
-                      <button
-                        key={c.id}
-                        className="p-2 rounded-lg border text-left hover:bg-slate-50"
-                        onClick={() => openChat(c.id)}
-                      >
+                      <button key={c.id} className="p-2 rounded-lg border text-left hover:bg-slate-50" onClick={() => openChat(c.id)}>
                         <div className="flex items-center justify-between">
                           <p className="font-medium">{c.title}</p>
                           {c.unread > 0 && <span className="text-[10px] rounded-full bg-slate-900 text-white px-2 py-0.5">{c.unread}</span>}
@@ -514,7 +323,6 @@
                     ))}
                   </div>
                 </Card>
-
                 <Card>
                   <p className="text-sm font-semibold">DM Requests</p>
                   <div className="mt-3 grid gap-2 text-sm text-slate-700">
@@ -539,36 +347,29 @@
                 <h2 className="text-xl font-semibold mb-2">Join the waitlist</h2>
                 <p className="text-sm text-slate-600 mb-6">This is an early preview — we’d love your thoughts.</p>
 
-                {/* FAQ before form */}
                 <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
-                  <Card>
-                    <p className="font-semibold">Do I need a project?</p>
-                    <p className="text-slate-600 mt-1">No. Post questions, reflections, or ideas—works are optional.</p>
-                  </Card>
-                  <Card>
-                    <p className="font-semibold">Who gets into Boards?</p>
-                    <p className="text-slate-600 mt-1">Invite-only, curated by moderators for trusted, high-value exchanges.</p>
-                  </Card>
-                  <Card>
-                    <p className="font-semibold">How is it spam-free?</p>
-                    <p className="text-slate-600 mt-1">Mod-reviewed posts, DM requests, and clear community rules.</p>
-                  </Card>
+                  <Card><p className="font-semibold">Do I need a project?</p><p className="text-slate-600 mt-1">No. Post questions, reflections, or ideas—works are optional.</p></Card>
+                  <Card><p className="font-semibold">Who gets into Boards?</p><p className="text-slate-600 mt-1">Invite-only, curated by moderators for trusted, high-value exchanges.</p></Card>
+                  <Card><p className="font-semibold">How is it spam-free?</p><p className="text-slate-600 mt-1">Mod-reviewed posts, DM requests, and clear community rules.</p></Card>
                 </div>
 
+                {/* Airtable embed (JSX attributes) */}
                 <iframe
-  class="airtable-embed"
-  src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
-  frameborder="0"
-  width="100%"
-  height="560"
-  style="background: transparent; border: 1px solid #ccc"
-  title="Citadel Waitlist"
-></iframe>
+                  className="airtable-embed"
+                  src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
+                  frameBorder="0"
+                  width="100%"
+                  height="560"
+                  style={{ background: "transparent", border: "1px solid #ccc" }}
+                  title="Citadel Waitlist"
+                ></iframe>
+              </div>
+            </section>
 
             {/* FOOTER */}
             <footer className="py-8 text-center text-xs text-slate-500">
-  © 2025 Citadel. All rights reserved.
-</footer>
+              © {year} Citadel. All rights reserved.
+            </footer>
 
             {/* MODALS */}
             <Modal open={showPostModal} onClose={() => setShowPostModal(false)} title="New Post">
@@ -588,18 +389,18 @@
             </Modal>
 
             {/* CHAT DRAWER */}
-            <Drawer open={!!openChat} onClose={() => setOpenChatId(null)} title={openChat ? openChat.title : ""}>
-              {openChat && (
+            <Drawer open={!!openChatObj} onClose={() => setOpenChatId(null)} title={openChatObj ? openChatObj.title : ""}>
+              {openChatObj && (
                 <div className="flex flex-col h-[calc(100vh-120px)]">
                   <div className="flex-1 overflow-y-auto space-y-3">
-                    {openChat.msgs.map(m => (
+                    {openChatObj.msgs.map(m => (
                       <div key={m.id} className={`max-w-[80%] rounded-xl border px-3 py-2 text-sm ${m.from === "You" ? "ml-auto bg-slate-50" : "bg-white"}`}>
                         <p className="text-[11px] text-slate-500">{m.from}</p>
                         <p className="text-slate-800">{m.text}</p>
                       </div>
                     ))}
                   </div>
-                  <ChatInput onSend={(txt) => sendMessage(openChat.id, txt)} />
+                  <ChatInput onSend={(txt) => sendMessage(openChatObj.id, txt)} />
                 </div>
               )}
             </Drawer>
@@ -611,16 +412,8 @@
         const [val, setVal] = useState("");
         return (
           <div className="mt-3 flex gap-2">
-            <input
-              className="flex-1 rounded-xl border px-3 py-2 text-sm"
-              placeholder="Write a message…"
-              value={val}
-              onChange={e => setVal(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { onSend(val); setVal(""); } }}
-            />
-            <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => { onSend(val); setVal(""); }}>
-              Send
-            </button>
+            <input className="flex-1 rounded-xl border px-3 py-2 text-sm" placeholder="Write a message…" value={val} onChange={e => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { onSend(val); setVal(""); } }} />
+            <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => { onSend(val); setVal(""); }}>Send</button>
           </div>
         );
       }
