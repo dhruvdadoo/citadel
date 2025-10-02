@@ -528,7 +528,11 @@
               {/* Latest Posts (span 2) */}
               <div className="md:col-span-2">
                 {/* Expanded first post */}
-                <ExpandedPost post={state.posts[0]} />
+                {state.posts[0].expanded ? (
+  <ExpandedPost post={state.posts[0]} />
+) : (
+  <CompactPost post={state.posts[0]} />
+)}
 
                 {/* Other posts */}
                 <div className="mt-4 grid gap-4">
@@ -554,7 +558,8 @@
                             <p className="font-medium truncate">{c.contactName}</p>
                             {c.unread > 0 ? <span className="text-[10px] rounded-full bg-slate-900 text-white px-2 py-0.5">{c.unread}</span> : null}
                           </div>
-                          <p className="text-xs text-slate-500 truncate">{c.last}</p>
+                          <p className="text-xs text-slate-600 truncate">{c.subject}</p>
+<p className="text-[11px] text-slate-400 truncate">{c.last}</p>
                         </button>
                       );
                     })}
