@@ -16,16 +16,14 @@
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22000000%22 /><text x=%2250%22 y=%2270%22 font-size=%2280%22 text-anchor=%22middle%22 fill=%22ffffff%22 font-family=%22Inter,Arial,sans-serif%22>C</text></svg>"
     />
 
-    <!-- Open Graph (optional: add og.png at repo root and uncomment below) -->
+    <!-- Open Graph / Twitter (add og.png to repo root for rich previews) -->
     <meta property="og:title" content="Citadel – Highest Signal Conversations" />
     <meta
       property="og:description"
       content="Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep the conversations high-signal. The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges."
     />
-    <!--
     <meta property="og:image" content="https://dhruvdadoo.github.io/citadel/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dhruvdadoo.github.io/citadel/" />
 
@@ -35,11 +33,8 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Airtable embed helper (auto-resize) -->
+    <!-- Airtable embed helper -->
     <script src="https://static.airtable.com/js/embed/embed_snippet_v1.js"></script>
-
-    <!-- Keep GitHub Pages from doing Jekyll-y things -->
-    <meta name="generator" content="nojekyll" />
   </head>
 
   <body class="bg-slate-50 text-slate-900">
@@ -48,28 +43,25 @@
     <script type="text/babel">
       const { useState, useMemo } = React;
 
-      // ---------------- Sample data (MVP placeholders) ----------------
+      // ----------- Sample data -----------
       const projects = [
-        { id: 1, title: "Onboarding Funnel Revamp", owner: "Sofia R.", status: "Open to feedback", tags: ["PM", "SaaS"], likes: 42, comments: 5 },
+        { id: 1, title: "Onboarding Funnel Revamp", owner: "Sofia R.", status: "Open to feedback" },
       ];
-
       const posts = [
-        { id: 101, author: "Elena (PMM – Stripe)", time: "2h", text: "Positioning tweak that lifted conversion on paid landing.", replies: 4, likes: 15, tags: ["PMM","Positioning"] },
-        { id: 102, author: "Hiro (ML – OpenAI)", time: "6h", text: "RAG eval: non-linear quality drop beyond 8 contexts; testing cache warm strategy.", replies: 9, likes: 27, tags: ["ML","RAG"] },
-        { id: 103, author: "Maya (Founder – YC)", time: "1d", text: "Cutting a seed deck to 8 slides — what moves to appendix?", replies: 12, likes: 34, tags: ["Fundraising","Deck"] },
+        { id: 101, author: "Elena (PMM – Stripe)", time: "2h", text: "Positioning tweak that lifted conversion on paid landing.", replies: 4, likes: 15 },
+        { id: 102, author: "Hiro (ML – OpenAI)", time: "6h", text: "RAG eval: non-linear quality drop beyond 8 contexts; testing cache warm strategy.", replies: 9, likes: 27 },
+        { id: 103, author: "Maya (Founder – YC)", time: "1d", text: "Cutting a seed deck to 8 slides — what moves to appendix?", replies: 12, likes: 34 },
       ];
-
       const activeChats = [
         { id: "dm1", title: "Scaling infra at Series B", last: "“We had to shard writes after a rough on-call week…”" },
         { id: "dm2", title: "Fundraising tactics AMA", last: "“Partner pushback was mostly about expansion proof…”" },
       ];
-
       const dmRequests = [
         { id: "rq1", from: "Alice (Founder)" },
         { id: "rq2", from: "Ben (PM)" },
       ];
 
-      // ---------------- UI helpers ----------------
+      // ----------- UI helpers -----------
       function Badge({ text }) {
         return (
           <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">
@@ -77,16 +69,15 @@
           </span>
         );
       }
-
       function Card({ children, className = "" }) {
         return (
-          <div className={`rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow bg-white/70 backdrop-blur ${className}`}>
+          <div className={`rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow bg-white ${className}`}>
             {children}
           </div>
         );
       }
 
-      // ---------------- App ----------------
+      // ----------- App -----------
       function App() {
         const [showWorkModal, setShowWorkModal] = useState(false);
         const [showPostModal, setShowPostModal] = useState(false);
@@ -101,14 +92,16 @@
                 <nav className="hidden md:flex items-center gap-6 text-sm">
                   <a href="#herald" className="hover:opacity-70">Herald</a>
                   <a href="#waitlist" className="hover:opacity-70">Waitlist</a>
+                  <!-- NEW: top nav CTA -->
+                  <a href="#waitlist" className="rounded-xl border px-3 py-2">Join Waitlist</a>
                 </nav>
               </div>
             </header>
 
-            {/* Hero (2 columns) */}
+            {/* Hero */}
             <section className="mx-auto max-w-6xl px-4 pt-14 pb-12">
               <div className="grid md:grid-cols-2 gap-10 items-start">
-                {/* Left: headline + CTA + chips + quick actions */}
+                {/* Left column */}
                 <div>
                   <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
                     The professional network built for{" "}
@@ -134,20 +127,20 @@
                     <Badge text="100% Signal" />
                   </div>
 
-                  {/* Quick actions */}
+                  {/* Quick actions (equal height cards) */}
                   <div className="mt-6 grid sm:grid-cols-3 gap-3">
-                    <div className="rounded-2xl border p-4 bg-white/70">
+                    <Card>
                       <p className="text-sm font-semibold">Post a question</p>
                       <p className="text-xs text-slate-600 mt-1">Get practical answers from founders who’ve done it.</p>
-                    </div>
-                    <div className="rounded-2xl border p-4 bg-white/70">
+                    </Card>
+                    <Card>
                       <p className="text-sm font-semibold">Share a learning</p>
                       <p className="text-xs text-slate-600 mt-1">Weekly reflections, experiments, what worked/what didn’t.</p>
-                    </div>
-                    <div className="rounded-2xl border p-4 bg-white/70">
+                    </Card>
+                    <Card>
                       <p className="text-sm font-semibold">Ask for feedback</p>
                       <p className="text-xs text-slate-600 mt-1">Docs, decks, landing pages—no project required.</p>
-                    </div>
+                    </Card>
                   </div>
 
                   {/* Social proof */}
@@ -157,21 +150,17 @@
                   </p>
                 </div>
 
-                {/* Right: Founders Hall explainer, then Project of the Day */}
-                <div className="grid gap-4">
-                  {/* Founders Hall explainer */}
+                {/* Right column: Hall explainer + Project of the Day */}
+                <div className="grid gap-5">
+                  {/* Hall explainer */}
                   <Card>
                     <p className="text-sm font-semibold">Founders Hall</p>
-
                     <div className="mt-3 grid gap-3">
-                      {/* Feed sample */}
                       <div className="rounded-xl border p-3">
                         <p className="text-xs text-slate-500">Feed (example)</p>
                         <p className="text-sm mt-1"><span className="font-medium">Onboarding Funnel Revamp</span> — Open to feedback</p>
                         <p className="text-sm mt-1"><span className="font-medium">RAG Chat for Docs</span> — Seeking collaborator</p>
                       </div>
-
-                      {/* Commons */}
                       <div className="rounded-xl border p-3">
                         <p className="text-xs text-slate-500">Commons in this Hall</p>
                         <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
@@ -180,8 +169,6 @@
                           <div className="rounded-lg border p-2 text-center">AMA</div>
                         </div>
                       </div>
-
-                      {/* Board explainer */}
                       <div className="flex items-center justify-between rounded-xl border p-3 text-xs">
                         <div>
                           <p className="font-semibold">Founders Board</p>
@@ -192,8 +179,9 @@
                     </div>
                   </Card>
 
-                  {/* Project of the Day */}
-                  <Card className="bg-amber-50 border-amber-200">
+                  {/* Project of the Day (with subtle accent bar) */}
+                  <Card className="relative bg-amber-50 border-amber-200">
+                    <span className="absolute left-0 top-0 h-full w-1 bg-amber-300 rounded-l-2xl"></span>
                     <p className="text-sm font-semibold flex items-center gap-2">🔥 Project of the Day</p>
                     <div className="mt-2">
                       <p className="text-lg font-semibold">{projectOfTheDay.title}</p>
@@ -208,9 +196,8 @@
               </div>
             </section>
 
-            {/* Main area: Latest Posts + Chats/DMs */}
-            <section id="herald" className="mx-auto max-w-6xl px-4 pb-8 grid md:grid-cols-3 gap-6">
-              {/* Latest posts (max 3) */}
+            {/* Herald: Latest Posts + Chats/DMs */}
+            <section id="herald" className="mx-auto max-w-6xl px-4 pb-8 pt-2 grid md:grid-cols-3 gap-6">
               <Card className="md:col-span-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Latest Posts</p>
@@ -233,7 +220,6 @@
                 </div>
               </Card>
 
-              {/* Sidebar: Active chats then DM requests */}
               <div className="grid gap-4">
                 <Card>
                   <p className="text-sm font-semibold">Active Chats</p>
@@ -269,23 +255,23 @@
                 <h2 className="text-xl font-semibold mb-2">Join the waitlist</h2>
                 <p className="text-sm text-slate-600 mb-6">This is an early preview — we’d love your thoughts.</p>
 
-                {/* Mini-FAQ */}
+                {/* FAQ BEFORE form */}
                 <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
-                  <div className="rounded-xl border p-4 bg-white/70">
+                  <Card>
                     <p className="font-semibold">Do I need a project?</p>
                     <p className="text-slate-600 mt-1">No. Post questions, reflections, or ideas—works are optional.</p>
-                  </div>
-                  <div className="rounded-xl border p-4 bg-white/70">
+                  </Card>
+                  <Card>
                     <p className="font-semibold">Who gets into Boards?</p>
                     <p className="text-slate-600 mt-1">Invite-only, curated by moderators for trusted, high-value exchanges.</p>
-                  </div>
-                  <div className="rounded-xl border p-4 bg-white/70">
+                  </Card>
+                  <Card>
                     <p className="font-semibold">How is it spam-free?</p>
                     <p className="text-slate-600 mt-1">Mod-reviewed posts, DM requests, and clear community rules.</p>
-                  </div>
+                  </Card>
                 </div>
 
-                {/* Airtable form (JSX-correct attributes) */}
+                {/* Airtable form */}
                 <iframe
                   className="airtable-embed"
                   src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
@@ -300,7 +286,7 @@
 
             {/* Footer */}
             <footer className="py-8 text-center text-xs text-slate-500">
-              © <span id="year">{new Date().getFullYear()}</span> Citadel. All rights reserved.
+              © {new Date().getFullYear()} Citadel. All rights reserved.
             </footer>
 
             {/* Modals */}
