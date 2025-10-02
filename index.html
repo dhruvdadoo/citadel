@@ -16,15 +16,16 @@
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22000000%22 /><text x=%2250%22 y=%2270%22 font-size=%2280%22 text-anchor=%22middle%22 fill=%22ffffff%22 font-family=%22Inter,Arial,sans-serif%22>C</text></svg>"
     />
 
-    <!-- Open Graph (optional: put og.png at repo root for rich previews) -->
+    <!-- Open Graph (optional: add og.png at repo root and uncomment below) -->
     <meta property="og:title" content="Citadel – Highest Signal Conversations" />
     <meta
       property="og:description"
       content="Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep the conversations high-signal. The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges."
     />
-    <!-- Uncomment if you add an image named og.png to your repo root -->
-    <!-- <meta property="og:image" content="https://dhruvdadoo.github.io/citadel/og.png" />
-    <meta name="twitter:card" content="summary_large_image" /> -->
+    <!--
+    <meta property="og:image" content="https://dhruvdadoo.github.io/citadel/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dhruvdadoo.github.io/citadel/" />
 
@@ -37,7 +38,7 @@
     <!-- Airtable embed helper (auto-resize) -->
     <script src="https://static.airtable.com/js/embed/embed_snippet_v1.js"></script>
 
-    <!-- Make sure Pages doesn't try to process things oddly -->
+    <!-- Keep GitHub Pages from doing Jekyll-y things -->
     <meta name="generator" content="nojekyll" />
   </head>
 
@@ -284,14 +285,14 @@
                   </div>
                 </div>
 
-                <!-- Airtable form -->
+                {/* Airtable form (JSX-correct attributes) */}
                 <iframe
-                  class="airtable-embed"
+                  className="airtable-embed"
                   src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
-                  frameborder="0"
+                  frameBorder="0"
                   width="100%"
                   height="560"
-                  style="background: transparent; border: 1px solid #ccc"
+                  style={{ background: "transparent", border: "1px solid #ccc" }}
                   title="Citadel Waitlist"
                 ></iframe>
               </div>
