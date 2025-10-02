@@ -337,22 +337,26 @@
               <p className="mt-3 text-sm text-slate-800">{post.body}</p>
 
               {/* Comments */}
-              {post.comments.length > 0 ? (
-                <div className="mt-4 border-l border-slate-200 pl-3 space-y-2">
-                  {post.comments.slice(0, visible).map(function(c){
-                    return (
-                      <p key={c.id} className="text-xs text-slate-700">
-                        <span className="font-medium">{c.author}:</span> {c.text}
-                      </p>
-                    );
-                  })}
-                  {hasMore ? (
-                    <button className="text-xs underline" onClick={function(){ loadMoreComments(post.id); }}>
-                      Load more comments
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
+{post.comments.length > 0 ? (
+  <div className="mt-4 border-l border-slate-200 pl-3 space-y-2">
+    {post.comments.slice(0, visible).map(function(c){
+      return (
+        <p key={c.id} className="text-xs text-slate-700">
+          <span className="font-medium">{c.author}:</span> {c.text}
+        </p>
+      );
+    })}
+    {hasMore ? (
+      <button className="text-xs underline" onClick={function(){ loadMoreComments(post.id); }}>
+        Load more comments
+      </button>
+    ) : null}
+  </div>
+) : (
+  <p className="mt-3 text-xs text-slate-500">
+    No comments yet — be the first to share feedback below.
+  </p>
+)}
 
               {/* Add comment */}
               <div className="mt-3 flex gap-2">
@@ -649,14 +653,23 @@
             </Modal>
 
             {/* CHAT DRAWER */}
-            <Drawer open={!!openChatObj} onClose={function(){ setOpenChatId(null); }} title="">
+            <Drawer
+  open={!!openChatObj}
+  onClose={function(){ setOpenChatId(null); }}
+  title={
+    openChatObj
+      ? (
+          <span className="flex items-center gap-2">
+            <span className="underline">{openChatObj.contactName}</span>
+            <span className="text-xs text-slate-600">• {openChatObj.subject}</span>
+          </span>
+        )
+      : ""
+  }
+>
               {openChatObj ? (
                 <div className="flex flex-col h-[calc(100vh-120px)]">
-                  {/* Name + subject */}
-                  <div className="mb-3">
-                    <p className="text-sm"><span className="underline">{openChatObj.contactName}</span></p>
-                    <p className="text-xs text-slate-600">{openChatObj.subject}</p>
-                  </div>
+                  
 
                   <div className="flex-1 overflow-y-auto space-y-3">
                     {openChatObj.msgs.map(function(m){
