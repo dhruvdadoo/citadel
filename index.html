@@ -319,10 +319,15 @@
           const hasMore = visible < (post.comments ? post.comments.length : 0);
           return (
             <Card>
-              {post.title ? <p className="text-sm font-semibold">{post.title}</p> : null}
-              <p className="text-xs text-slate-500 mt-1">
-                by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}
-              </p>
+              // Synthetic heading: title if present, else “Question” / “Update”
+const heading =
+  post.title ||
+  (post.body && (post.body.trim().endsWith("?") || post.body.includes("?") ? "Question" : "Update"));
+
+<p className="text-sm font-semibold">{heading}</p>
+<p className="text-xs text-slate-500 mt-1">
+  by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}
+</p>
 
               {/* Like + collapse controls for expanded post */}
               <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
