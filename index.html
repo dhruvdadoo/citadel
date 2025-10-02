@@ -319,12 +319,7 @@
           const hasMore = visible < (post.comments ? post.comments.length : 0);
           return (
             <Card>
-              // Synthetic heading: title if present, else “Question” / “Update”
-const heading =
-  post.title ||
-  (post.body && (post.body.trim().endsWith("?") || post.body.includes("?") ? "Question" : "Update"));
-
-<p className="text-sm font-semibold">{heading}</p>
+           {post.title ? <p className="text-sm font-semibold">{post.title}</p> : <p className="text-sm font-semibold">Post</p>}
 <p className="text-xs text-slate-500 mt-1">
   by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}
 </p>
