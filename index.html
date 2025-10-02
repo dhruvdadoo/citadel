@@ -10,31 +10,30 @@
       content="Citadel is the professional network built for the highest-signal conversations. Post what you’re building, thinking, or learning; Halls, Commons, The Herald, and invite-only Boards keep it high-signal."
     />
 
-    <!-- Simple inline favicon (black circle + white C) -->
+    <!-- Simple inline favicon -->
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22000000%22 /><text x=%2250%22 y=%2270%22 font-size=%2280%22 text-anchor=%22middle%22 fill=%22ffffff%22 font-family=%22Inter,Arial,sans-serif%22>C</text></svg>"
     />
 
-    <!-- Open Graph / Twitter (add og.png to repo root for rich previews) -->
+    <!-- Open Graph -->
     <meta property="og:title" content="Citadel – Highest Signal Conversations" />
     <meta
       property="og:description"
       content="Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep the conversations high-signal. The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges."
     />
-    <meta property="og:image" content="https://dhruvdadoo.github.io/citadel/og.png" />
-    <meta name="twitter:card" content="summary_large_image" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dhruvdadoo.github.io/citadel/" />
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React 18 UMD + Babel (JSX in browser) -->
+    <!-- React 18 UMD + Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Airtable embed helper -->
     <script src="https://static.airtable.com/js/embed/embed_snippet_v1.js"></script>
+
+    <meta name="generator" content="nojekyll" />
   </head>
 
   <body class="bg-slate-50 text-slate-900">
@@ -43,25 +42,26 @@
     <script type="text/babel">
       const { useState, useMemo } = React;
 
-      // ----------- Sample data -----------
       const projects = [
         { id: 1, title: "Onboarding Funnel Revamp", owner: "Sofia R.", status: "Open to feedback" },
       ];
+
       const posts = [
-        { id: 101, author: "Elena (PMM – Stripe)", time: "2h", text: "Positioning tweak that lifted conversion on paid landing.", replies: 4, likes: 15 },
-        { id: 102, author: "Hiro (ML – OpenAI)", time: "6h", text: "RAG eval: non-linear quality drop beyond 8 contexts; testing cache warm strategy.", replies: 9, likes: 27 },
-        { id: 103, author: "Maya (Founder – YC)", time: "1d", text: "Cutting a seed deck to 8 slides — what moves to appendix?", replies: 12, likes: 34 },
+        { id: 101, author: "Elena (PMM – Stripe)", time: "2h", text: "Positioning tweak that lifted conversion.", replies: 4, likes: 15 },
+        { id: 102, author: "Hiro (ML – OpenAI)", time: "6h", text: "RAG eval: quality tradeoffs after 8 contexts.", replies: 9, likes: 27 },
+        { id: 103, author: "Maya (Founder – YC)", time: "1d", text: "Cutting a seed deck to 8 slides — what goes?", replies: 12, likes: 34 },
       ];
+
       const activeChats = [
         { id: "dm1", title: "Scaling infra at Series B", last: "“We had to shard writes after a rough on-call week…”" },
         { id: "dm2", title: "Fundraising tactics AMA", last: "“Partner pushback was mostly about expansion proof…”" },
       ];
+
       const dmRequests = [
         { id: "rq1", from: "Alice (Founder)" },
         { id: "rq2", from: "Ben (PM)" },
       ];
 
-      // ----------- UI helpers -----------
       function Badge({ text }) {
         return (
           <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">
@@ -69,15 +69,15 @@
           </span>
         );
       }
+
       function Card({ children, className = "" }) {
         return (
-          <div className={`rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow bg-white ${className}`}>
+          <div className={`rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow bg-white/70 backdrop-blur ${className}`}>
             {children}
           </div>
         );
       }
 
-      // ----------- App -----------
       function App() {
         const [showWorkModal, setShowWorkModal] = useState(false);
         const [showPostModal, setShowPostModal] = useState(false);
@@ -92,16 +92,15 @@
                 <nav className="hidden md:flex items-center gap-6 text-sm">
                   <a href="#herald" className="hover:opacity-70">Herald</a>
                   <a href="#waitlist" className="hover:opacity-70">Waitlist</a>
-                  {/* NEW: top nav CTA */}
                   <a href="#waitlist" className="rounded-xl border px-3 py-2">Join Waitlist</a>
                 </nav>
               </div>
             </header>
 
-            {/* Hero */}
+            {/* Hero (2 columns) */}
             <section className="mx-auto max-w-6xl px-4 pt-14 pb-12">
-              <div className="grid md:grid-cols-2 gap-10 items-start">
-                {/* Left column */}
+              <div className="grid md:grid-cols-2 gap-10 items-stretch">
+                {/* Left */}
                 <div>
                   <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
                     The professional network built for{" "}
@@ -111,7 +110,7 @@
                   </h1>
 
                   <p className="mt-4 text-slate-700 text-lg">
-                    Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep the conversations high-signal.
+                    Post what you’re building, thinking, or learning. Halls connect you with peers; Commons keep conversations high-signal. 
                     The Herald surfaces the best daily, and Boards are invite-only spaces for trusted, high-value exchanges.
                   </p>
 
@@ -127,32 +126,29 @@
                     <Badge text="100% Signal" />
                   </div>
 
-                  {/* Quick actions (equal height cards) */}
                   <div className="mt-6 grid sm:grid-cols-3 gap-3">
-                    <Card>
+                    <div className="rounded-2xl border p-4 bg-white/70">
                       <p className="text-sm font-semibold">Post a question</p>
                       <p className="text-xs text-slate-600 mt-1">Get practical answers from founders who’ve done it.</p>
-                    </Card>
-                    <Card>
+                    </div>
+                    <div className="rounded-2xl border p-4 bg-white/70">
                       <p className="text-sm font-semibold">Share a learning</p>
                       <p className="text-xs text-slate-600 mt-1">Weekly reflections, experiments, what worked/what didn’t.</p>
-                    </Card>
-                    <Card>
+                    </div>
+                    <div className="rounded-2xl border p-4 bg-white/70">
                       <p className="text-sm font-semibold">Ask for feedback</p>
                       <p className="text-xs text-slate-600 mt-1">Docs, decks, landing pages—no project required.</p>
-                    </Card>
+                    </div>
                   </div>
 
-                  {/* Social proof */}
                   <p className="mt-4 text-xs text-slate-500">
                     Operators from Stripe, Shopify, Notion, OpenAI read and respond here.
                     <a href="#waitlist" className="ml-2 underline">Join the waitlist →</a>
                   </p>
                 </div>
 
-                {/* Right column: Hall explainer + Project of the Day */}
-                <div className="grid gap-5">
-                  {/* Hall explainer */}
+                {/* Right */}
+                <div className="flex flex-col justify-between h-full gap-5">
                   <Card>
                     <p className="text-sm font-semibold">Founders Hall</p>
                     <div className="mt-3 grid gap-3">
@@ -179,10 +175,8 @@
                     </div>
                   </Card>
 
-                  {/* Project of the Day (with subtle accent bar) */}
-                  <Card className="relative bg-amber-50 border-amber-200">
-                    <span className="absolute left-0 top-0 h-full w-1 bg-amber-300 rounded-l-2xl"></span>
-                    <p className="text-sm font-semibold flex items-center gap-2">🔥 Project of the Day</p>
+                  <Card className="bg-amber-50 ring-1 ring-amber-300/60 rounded-2xl shadow-sm">
+                    <p className="text-sm font-semibold">Project of the Day</p>
                     <div className="mt-2">
                       <p className="text-lg font-semibold">{projectOfTheDay.title}</p>
                       <p className="text-xs text-slate-500">by {projectOfTheDay.owner} • {projectOfTheDay.status}</p>
@@ -196,7 +190,7 @@
               </div>
             </section>
 
-            {/* Herald: Latest Posts + Chats/DMs */}
+            {/* Main area */}
             <section id="herald" className="mx-auto max-w-6xl px-4 pb-8 pt-2 grid md:grid-cols-3 gap-6">
               <Card className="md:col-span-2">
                 <div className="flex items-center justify-between">
@@ -249,77 +243,42 @@
               </div>
             </section>
 
-            {/* Waitlist */}
+            {/* Waitlist with FAQ above */}
             <section id="waitlist" className="border-t bg-white/60">
               <div className="mx-auto max-w-4xl px-4 py-12">
                 <h2 className="text-xl font-semibold mb-2">Join the waitlist</h2>
                 <p className="text-sm text-slate-600 mb-6">This is an early preview — we’d love your thoughts.</p>
 
-                {/* FAQ BEFORE form */}
                 <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
-                  <Card>
+                  <div className="rounded-xl border p-4 bg-white/70">
                     <p className="font-semibold">Do I need a project?</p>
                     <p className="text-slate-600 mt-1">No. Post questions, reflections, or ideas—works are optional.</p>
-                  </Card>
-                  <Card>
+                  </div>
+                  <div className="rounded-xl border p-4 bg-white/70">
                     <p className="font-semibold">Who gets into Boards?</p>
                     <p className="text-slate-600 mt-1">Invite-only, curated by moderators for trusted, high-value exchanges.</p>
-                  </Card>
-                  <Card>
+                  </div>
+                  <div className="rounded-xl border p-4 bg-white/70">
                     <p className="font-semibold">How is it spam-free?</p>
                     <p className="text-slate-600 mt-1">Mod-reviewed posts, DM requests, and clear community rules.</p>
-                  </Card>
+                  </div>
                 </div>
 
-                {/* Airtable form */}
                 <iframe
-                  className="airtable-embed"
+                  class="airtable-embed"
                   src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
-                  frameBorder="0"
+                  frameborder="0"
                   width="100%"
                   height="560"
-                  style={{ background: "transparent", border: "1px solid #ccc" }}
+                  style="background: transparent; border: 1px solid #ccc"
                   title="Citadel Waitlist"
                 ></iframe>
               </div>
             </section>
 
-            {/* Footer */}
             <footer className="py-8 text-center text-xs text-slate-500">
-              © {new Date().getFullYear()} Citadel. All rights reserved.
+              © <span id="year">{new Date().getFullYear()}</span> Citadel. All rights reserved.
             </footer>
-
-            {/* Modals */}
-            {showPostModal && (
-              <div className="fixed inset-0 z-30 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
-                <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">New Post</p>
-                    <button className="text-slate-500 text-sm" onClick={() => setShowPostModal(false)}>Close</button>
-                  </div>
-                  <div className="mt-4 grid gap-3">
-                    <textarea placeholder="What are you building, thinking, or learning right now?" className="w-full rounded-xl border px-3 py-2 text-sm min-h-[120px]" />
-                    <button className="rounded-2xl bg-slate-900 text-white px-4 py-2 text-sm">Post</button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {showWorkModal && (
-              <div className="fixed inset-0 z-30 grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true">
-                <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">New Work</p>
-                    <button className="text-slate-500 text-sm" onClick={() => setShowWorkModal(false)}>Close</button>
-                  </div>
-                  <div className="mt-4 grid gap-3">
-                    <input placeholder="Title" className="w-full rounded-xl border px-3 py-2 text-sm" />
-                    <textarea placeholder="Describe what you’re building (feedback, collaborator, showcase)" className="w-full rounded-xl border px-3 py-2 text-sm min-h-[120px]" />
-                    <button className="rounded-2xl bg-slate-900 text-white px-4 py-2 text-sm">Post Work</button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         );
       }
