@@ -273,7 +273,7 @@
             if (!req) return s;
             const newChat = {
               id: uid("dm"),
-              contactName: req.from.replace(/\s*\((.*?)\)\s*/,""), // crude strip role if present
+              contactName: req.from.replace(/\s*\((.*?)\)\s*/,""),
               subject: "New conversation",
               last: "Say hi and share context.",
               unread: 1,
@@ -603,13 +603,14 @@
                   </Card>
                 </div>
 
+                {/* FIXED JSX attributes here */}
                 <iframe
-                  class="airtable-embed"
+                  className="airtable-embed"
                   src="https://airtable.com/embed/appaunCCHxhSb8aDK/pagIhALBPbZKHweDM/form"
-                  frameborder="0"
+                  frameBorder="0"
                   width="100%"
                   height="560"
-                  style="background: transparent; border: 1px solid #ccc"
+                  style={{ background: "transparent", border: "1px solid #ccc" }}
                   title="Citadel Waitlist"
                 ></iframe>
               </div>
