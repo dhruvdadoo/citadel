@@ -313,67 +313,79 @@
         }
 
         // ---- UI Components (inline) ----
-        function ExpandedPost({ post }) {
-          const [commentText, setCommentText] = useState("");
-          const visible = post.showCount || 0;
-          const hasMore = visible < (post.comments ? post.comments.length : 0);
-          return (
-            <Card>
-           {post.title ? <p className="text-sm font-semibold">{post.title}</p> : <p className="text-sm font-semibold">Post</p>}
-<p className="text-xs text-slate-500 mt-1">
-  by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {post.comments.length}
-</p>
+       function ExpandedPost({ post }) {
+  const [commentText, setCommentText] = useState("");
+  const visible = post.showCount || 0;
+  const totalComments = (post.comments && post.comments.length) ? post.comments.length : 0;
+  const hasMore = visible < totalComments;
 
-              {/* Like + collapse controls for expanded post */}
-              <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                <button className="rounded-lg border px-2 py-1" onClick={function(){ toggleLike(post.id); }}>
-                  {post.liked ? "Unlike" : "Like"} ({post.likes})
-                </button>
-                <button className="rounded-lg border px-2 py-1" onClick={function(){ toggleExpanded(post.id); }}>
-                  Collapse
-                </button>
-              </div>
+  // Fallback title: if post.title is empty, show "Post"
+  const heading = (post.title && post.title.trim().length > 0) ? post.title : "Post";
 
-              <p className="mt-3 text-sm text-slate-800">{post.body}</p>
+  return (
+    <Card>
+      {/* Post title or fallback */}
+      <p className="text-sm font-semibold">{heading}</p>
 
-              {/* Comments */}
-{post.comments.length > 0 ? (
-  <div className="mt-4 border-l border-slate-200 pl-3 space-y-2">
-    {post.comments.slice(0, visible).map(function(c){
-      return (
-        <p key={c.id} className="text-xs text-slate-700">
-          <span className="font-medium">{c.author}:</span> {c.text}
+      {/* Meta line */}
+      <p className="text-xs text-slate-500 mt-1">
+        by {post.author} • {post.timeLabel} • Likes {post.likes} • Replies {totalComments}
+      </p>
+
+      {/* Like + Collapse buttons */}
+      <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+        <button className="rounded-lg border px-2 py-1" onClick={() => toggleLike(post.id)}>
+          {post.liked ? "Unlike" : "Like"} ({post.likes})
+        </button>
+        <button className="rounded-lg border px-2 py-1" onClick={() => toggleExpanded(post.id)}>
+          Collapse
+        </button>
+      </div>
+
+      {/* Post body */}
+      <p className="mt-3 text-sm text-slate-800">{post.body}</p>
+
+      {/* Comments section */}
+      {totalComments > 0 ? (
+        <div className="mt-4 border-l border-slate-200 pl-3 space-y-2">
+          {post.comments.slice(0, visible).map((c) => (
+            <p key={c.id} className="text-xs text-slate-700">
+              <span className="font-medium">{c.author}:</span> {c.text}
+            </p>
+          ))}
+          {hasMore && (
+            <button className="text-xs underline" onClick={() => loadMoreComments(post.id)}>
+              Load more comments
+            </button>
+          )}
+        </div>
+      ) : (
+        <p className="mt-4 text-xs text-slate-500 italic">
+          No comments yet — be the first to share feedback below.
         </p>
-      );
-    })}
-    {hasMore ? (
-      <button className="text-xs underline" onClick={function(){ loadMoreComments(post.id); }}>
-        Load more comments
-      </button>
-    ) : null}
-  </div>
-) : (
-  <p className="mt-3 text-xs text-slate-500">
-    No comments yet — be the first to share feedback below.
-  </p>
-)}
+      )}
 
-              {/* Add comment */}
-              <div className="mt-3 flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border px-3 py-2 text-sm"
-                  placeholder="Add a comment…"
-                  value={commentText}
-                  onChange={function(e){ setCommentText(e.target.value); }}
-                />
-                <button className="rounded-lg border px-3 py-2 text-xs" onClick={function(){ addComment(post.id, commentText); setCommentText(""); }}>
-                  Post
-                </button>
-              </div>
-            </Card>
-          );
-        }
-
+      {/* Add a comment */}
+      <div className="mt-3 flex gap-2">
+        <input
+          className="flex-1 rounded-lg border px-3 py-2 text-sm"
+          placeholder="Add a comment…"
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+        />
+        <button
+          className="rounded-lg border px-3 py-2 text-xs"
+          onClick={() => {
+            addComment(post.id, commentText);
+            setCommentText("");
+          }}
+        >
+          Post
+        </button>
+      </div>
+    </Card>
+  );
+}
         function CompactPost({ post }) {
           return (
             <Card>
